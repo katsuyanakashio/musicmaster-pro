@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+  level     Int      @default(1)
+  exp       Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions  Session[]
+  progress  Progress[]
+  scores    Score[]
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Song {
+  id         String   @id @default(uuid())
+  title      String
+  artist     String
+  difficulty String
+  duration   Int
+  bpm        Int
+  notes      String
+  createdAt  DateTime @default(now())
+
+  progress Progress[]
+  scores   Score[]
+}
+
+model Progress {
+  id           String   @id @default(uuid())
+  userId       String
+  songId       String
+  completed    Boolean  @default(false)
+  accuracy     Float    @default(0)
+  highScore    Int      @default(0)
+  lastPlayedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  song Song @relation(fields: [songId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, songId])
+}
+
+model Score {
+  id        String   @id @default(uuid())
+  userId    String
+  songId    String
+  score     Int
+  accuracy  Float
+  combo     Int
+  perfect   Int
+  good      Int
+  miss      Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  song Song @relation(fields: [songId], references: [id], onDelete: Cascade)
+}
